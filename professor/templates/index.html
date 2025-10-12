@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <title>Monitor de Computadores - Dashboard com Controle</title>
+    
+    <style>
+        :root {
+            --columns: 5;
+            --gap: 12px;
+            --primary-color: #4CAF50;
+            --danger-color: #f44336;
+            --warning-color: #ff9800;
+            --info-color: #2196F3;
+            --bg-dark: #1a1a1a;
+            --bg-medium: #2d2d2d;
+            --bg-light: #3d3d3d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --border-color: #555;
+            --topbar-height: 20px;
+            --sidebar-width: 250px;
+            --sidebar-collapsed-width: 40px;
+        }
+
+        [data-theme="light"] {
+            --bg-dark: #f0f0f0;
+            --bg-medium: #e0e0e0;
+            --bg-light: #ffffff;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --border-color: #ccc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            padding: 0;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Top Bar - 20px height */
+        .top-bar {
+            height: var(--topbar-height);
+            background: var(--bg-medium);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            font-size: 11px;
+            border-bottom: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .top-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .top-stat-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-value.warning {
+            color: var(--warning-color);
+        }
+
+        .stat-value.danger {
+            color: var(--danger-color);
+        }
+
+        .theme-toggle {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: var(--topbar-height);
+            right: 0;
+            width: var(--sidebar-collapsed-width);
+            height: calc(100vh - var(--topbar-height));
+            background: var(--bg-medium);
+            transition: width 0.3s ease;
+            z-index: 900;
+            border-left: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .sidebar.expanded {
+            width: var(--sidebar-width);
+        }
+
+        .sidebar-toggle {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-light);
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .sidebar-content {
+            padding: 15px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            height: calc(100% - 40px);
+            overflow-y: auto;
+        }
+
+        .sidebar.expanded .sidebar-content {
+            opacity: 1;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: var(--topbar-height);
+            margin-right: var(--sidebar-collapsed-width);
+            padding: 10px;
+            transition: margin-right 0.3s ease;
+        }
+
+        .sidebar.expanded ~ .main-content {
+            margin-right: var(--sidebar-width);
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background: var(--bg-medium);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            position: sticky;
+            top: calc(var(--topbar-height) + 10px);
+            z-index: 10;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h2::before {
+            content: '🎮';
+            font-size: 28px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            background: var(--bg-light);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button.danger {
+            background: var(--danger-color);
+            border-color: var(--danger-color);
+        }
+
+        button.danger:hover {
+            background: #d32f2f;
+            border-color: #d32f2f;
+        }
+
+        button.warning {
+            background: var(--warning-color);
+            border-color: var(--warning-color);
+        }
+
+        button.warning:hover {
+            background: #f57c00;
+            border-color: #f57c00;
+        }
+
+        button.info {
+            background: var(--info-color);
+            border-color: var(--info-color);
+        }
+
+        button.info:hover {
+            background: #1976D2;
+            border-color: #1976D2;
+        }
+
+        .column-indicator {
+            background: var(--bg-light);
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid var(--border-color);
+            min-width: 130px;
+            text-align: center;
+        }
+
+        /* Control Panel in Sidebar */
+        .control-panel {
+            background: var(--bg-medium);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .control-panel h3 {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+        }
+
+        .control-panel h3::before {
+            content: '🎛️';
+            font-size: 18px;
+        }
+
+        .control-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-buttons button {
+            width: 100%;
+            justify-content: flex-start;
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        /* Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(var(--columns), 1fr);
+            gap: var(--gap);
+            transition: grid-template-columns 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        /* Screen Card */
+        .screen {
+            aspect-ratio: 16/9;
+            background: var(--bg-medium);
+            border: 2px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .screen:hover {
+            border-color: var(--primary-color);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 16px rgba(76, 175, 80, 0.2);
+        }
+
+        .screen.selected {
+            border-color: var(--info-color);
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.5);
+        }
+
+        .screen.maximized {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 95vw;
+            height: 95vh;
+            z-index: 100;
+            border: 3px solid var(--primary-color);
+            box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.9);
+            border-radius: 12px;
+        }
+
+        .screen.maximized:hover {
+            transform: translate(-50%, -50%);
+        }
+
+        .screen img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: #000;
+        }
+
+        .screen img[src=""], .screen img:not([src]) {
+            display: none;
+        }
+
+        /* Labels e Info */
+        .label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+            padding: 25px 10px 10px 10px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .screen-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            max-width: 150px;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .info-icon {
+            font-size: 14px;
+        }
+
+        .info-text {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .alert-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--danger-color);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        .alert-badge.warning {
+            background: var(--warning-color);
+        }
+
+        .select-checkbox {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 24px;
+            height: 24px;
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .screen:hover .select-checkbox {
+            display: block;
+        }
+
+        .screen.selected .select-checkbox {
+            display: block;
+            background: var(--info-color);
+            border-color: var(--info-color);
+        }
+
+        .screen.selected .select-checkbox::after {
+            content: '✓';
+            color: white;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        /* Placeholder */
+        .placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            color: var(--text-secondary);
+            height: 100%;
+            gap: 10px;
+        }
+
+        .placeholder::before {
+            content: '💤';
+            font-size: 48px;
+            opacity: 0.5;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--bg-medium);
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            font-size: 20px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+        }
+
+        .close-modal:hover {
+            color: var(--danger-color);
+            transform: none;
+            box-shadow: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            background: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.95);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-color);
+            max-width: 500px;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-color: var(--primary-color);
+            background: rgba(76, 175, 80, 0.95);
+        }
+
+        .toast.error {
+            border-color: var(--danger-color);
+            background: rgba(244, 67, 54, 0.95);
+        }
+
+        /* Connection Status */
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-light);
+            border-radius: 6px;
+            font-size: 13px;
+            border: 1px solid var(--border-color);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            animation: blink 2s infinite;
+        }
+
+        .status-dot.disconnected {
+            background: var(--danger-color);
+            animation: none;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* Loading */
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 999;
+        }
+
+        .spinner {
+            border: 4px solid var(--bg-light);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header h2 {
+                justify-content: center;
+            }
+
+            .controls {
+                justify-content: center;
+            }
+
+            .grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .screen.maximized {
+                width: 98vw;
+                height: 98vh;
+            }
+
+            .sidebar.expanded {
+                width: 100%;
+            }
+            
+            .sidebar.expanded ~ .main-content {
+                margin-right: 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .top-bar {
+                font-size: 9px;
+            }
+
+            .top-stats {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <!-- Top Bar - 20px height -->
+    <div class="top-bar">
+        <div class="top-stats">
+            <div class="top-stat-item">
+                <span class="stat-label">Online:</span>
+                <span class="stat-value" id="topOnlineCount">0</span>
+            </div>
+            <div class="top-stat-item">
+                <span class="stat-label">Selecionados:</span>
+                <span class="stat-value" id="topSelectedCount">0</span>
+            </div>
+            <div class="top-stat-item">
+                <span class="stat-label">Alertas Críticos:</span>
+                <span class="stat-value danger" id="topCriticalAlerts">0</span>
+            </div>
+            <div class="top-stat-item">
+                <span class="stat-label">Avisos:</span>
+                <span class="stat-value warning" id="topWarningAlerts">0</span>
+            </div>
+            <div class="top-stat-item">
+                <span class="stat-label">Mensagens:</span>
+                <span class="stat-value" id="topMessageCount">0</span>
+            </div>
+            <div class="top-stat-item">
+                <span class="stat-label">Comandos:</span>
+                <span class="stat-value" id="topCommandCount">0</span>
+            </div>
+            <div class="top-stat-item">
+                <span class="stat-label">Uptime:</span>
+                <span class="stat-value" id="topUptime">--:--:--</span>
+            </div>
+        </div>
+        <button class="theme-toggle" id="themeToggle">
+            <span>🌙</span> Tema
+        </button>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+    <div class="sidebar-content">
+
+        <div class="control-panel">
+            <!-- Grupo principal de ações -->
+            <div class="control-buttons">
+                                    <!-- Informações e controles secundários -->
+
+                <div class="connection-status">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="connectionText">Conectando...</span>
+                </div>
+                <div class="column-indicator" id="columnIndicator">Colunas: 5</div>
+                <button id="resetBtn" class="info">
+                    <span>🔄</span> Restaurar
+                </button>
+                <button id="refreshBtn" class="info">
+                    <span>⚡</span> Atualizar
+                </button>
+
+
+                <button id="btnMessage" class="info">
+                    <span>💬</span> Enviar Mensagem
+                </button>
+                <button id="btnPause" class="warning">
+                    <span>⏸️</span> Pausar
+                </button>
+                <button id="btnResume" class="info">
+                    <span>▶️</span> Retomar
+                </button>
+                <button id="btnQuality" class="info">
+                    <span>🎨</span> Qualidade
+                </button>
+                <button id="btnInterval" class="info">
+                    <span>⏱️</span> Intervalo
+                </button>
+                <button id="btnShutdown" class="warning">
+                    <span>🛑</span> Desligar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Loading Screen -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div>Conectando ao servidor...</div>
+        </div>
+
+        <!-- Grid -->
+        <div class="grid" id="grid">
+            <!-- Computadores serão inseridos aqui -->
+        </div>
+
+        <!-- Modal para Mensagem -->
+        <div class="modal" id="messageModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>💬 Enviar Mensagem</h3>
+                    <button class="close-modal" onclick="closeModal('messageModal')">×</button>
+                </div>
+                <div class="form-group">
+                    <label>Destinatários:</label>
+                    <input type="text" id="messageTarget" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Mensagem:</label>
+                    <textarea id="messageText" placeholder="Digite sua mensagem aqui..."></textarea>
+                </div>
+                <div class="modal-buttons">
+                    <button onclick="closeModal('messageModal')">Cancelar</button>
+                    <button class="info" onclick="sendMessage()">Enviar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Qualidade -->
+        <div class="modal" id="qualityModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>🎨 Ajustar Qualidade</h3>
+                    <button class="close-modal" onclick="closeModal('qualityModal')">×</button>
+                </div>
+                <div class="form-group">
+                    <label>Destinatários:</label>
+                    <input type="text" id="qualityTarget" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Qualidade (10-100%):</label>
+                    <input type="number" id="qualityValue" min="10" max="100" value="60">
+                </div>
+                <div class="modal-buttons">
+                    <button onclick="closeModal('qualityModal')">Cancelar</button>
+                    <button class="info" onclick="sendQuality()">Aplicar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal para Intervalo -->
+        <div class="modal" id="intervalModal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>⏱️ Ajustar Intervalo</h3>
+                    <button class="close-modal" onclick="closeModal('intervalModal')">×</button>
+                </div>
+                <div class="form-group">
+                    <label>Destinatários:</label>
+                    <input type="text" id="intervalTarget" readonly>
+                </div>
+                <div class="form-group">
+                    <label>Intervalo (1-60 segundos):</label>
+                    <input type="number" id="intervalValue" min="1" max="60" value="5">
+                </div>
+                <div class="modal-buttons">
+                    <button onclick="closeModal('intervalModal')">Cancelar</button>
+                    <button class="info" onclick="sendInterval()">Aplicar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
+    </div>
+
+    <script>
+        // Proteções iniciais
+        if (typeof window === 'undefined') {
+            throw new Error('Este script deve ser executado em um navegador');
+        }
+
+        if (window.monitorInicializado) {
+            throw new Error('O monitor já foi inicializado');
+        }
+        window.monitorInicializado = true;
+
+        // Elementos DOM - serão inicializados após DOMContentLoaded
+        let grid, resetBtn, refreshBtn, columnIndicator, toast, loading;
+        let statusDot, connectionText, onlineCount, selectedCount, criticalAlerts;
+        let warningAlerts, messageCount, commandCount, uptime;
+        let topOnlineCount, topSelectedCount, topCriticalAlerts, topWarningAlerts;
+        let topMessageCount, topCommandCount, topUptime;
+        let btnMessage, btnPause, btnResume, btnQuality, btnInterval, btnShutdown;
+        let sidebar, sidebarToggle, themeToggle;
+
+        // Configurações
+        const MAX = 20;
+        let currentColumns = 5;
+        let maximizedScreen = null;
+        let scrollTimeout;
+        let computers = [];
+        let selectedComputers = new Set();
+        let stats = {};
+        const computerMap = new Map();
+        let eventSource = null;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+
+        // Inicializar elementos DOM
+        function initializeDOMElements() {
+            grid = document.getElementById('grid');
+            resetBtn = document.getElementById('resetBtn');
+            refreshBtn = document.getElementById('refreshBtn');
+            columnIndicator = document.getElementById('columnIndicator');
+            toast = document.getElementById('toast');
+            loading = document.getElementById('loading');
+            statusDot = document.getElementById('statusDot');
+            connectionText = document.getElementById('connectionText');
+            onlineCount = document.getElementById('onlineCount');
+            selectedCount = document.getElementById('selectedCount');
+            criticalAlerts = document.getElementById('criticalAlerts');
+            warningAlerts = document.getElementById('warningAlerts');
+            messageCount = document.getElementById('messageCount');
+            commandCount = document.getElementById('commandCount');
+            uptime = document.getElementById('uptime');
+
+            // Top bar elements
+            topOnlineCount = document.getElementById('topOnlineCount');
+            topSelectedCount = document.getElementById('topSelectedCount');
+            topCriticalAlerts = document.getElementById('topCriticalAlerts');
+            topWarningAlerts = document.getElementById('topWarningAlerts');
+            topMessageCount = document.getElementById('topMessageCount');
+            topCommandCount = document.getElementById('topCommandCount');
+            topUptime = document.getElementById('topUptime');
+
+            // Botões de controle
+            btnMessage = document.getElementById('btnMessage');
+            btnPause = document.getElementById('btnPause');
+            btnResume = document.getElementById('btnResume');
+            btnQuality = document.getElementById('btnQuality');
+            btnInterval = document.getElementById('btnInterval');
+            btnShutdown = document.getElementById('btnShutdown');
+
+            // Sidebar and theme
+            sidebar = document.getElementById('sidebar');
+            sidebarToggle = document.getElementById('sidebarToggle');
+            themeToggle = document.getElementById('themeToggle');
+        }
+
+        // Funções de proteção
+        function sanitizeHTML(str) {
+            const temp = document.createElement('div');
+            temp.textContent = str;
+            return temp.innerHTML;
+        }
+
+        function validateComputerData(computer) {
+            if (!computer || typeof computer !== 'object') return false;
+            const { nome, imagem } = computer;
+            if (typeof nome !== 'string' || nome.trim().length === 0) return false;
+            if (imagem && typeof imagem !== 'string') return false;
+            return true;
+        }
+
+        function validateImageSrc(src) {
+            if (!src || typeof src !== 'string') return false;
+            const allowedPatterns = ['data:image/', 'https://', 'http://', '/'];
+            return allowedPatterns.some(pattern => src.startsWith(pattern));
+        }
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+        }
+
+        function formatPercent(value) {
+            return Math.round(value) + '%';
+        }
+
+        // Sidebar functions
+        function toggleSidebar() {
+            if (sidebar) sidebar.classList.toggle('expanded');
+        }
+
+        // Theme functions 
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            document.body.setAttribute('data-theme', newTheme);
+            
+            // Update theme toggle button
+            const themeIcon = themeToggle.querySelector('span');
+            if (themeIcon) {
+                themeIcon.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+            }
+            
+            // Save preference to localStorage
+            localStorage.setItem('theme', newTheme);
+        }
+
+        function loadTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.body.setAttribute('data-theme', savedTheme);
+            
+            // Update theme toggle button
+            const themeIcon = themeToggle.querySelector('span');
+            if (themeIcon) {
+                themeIcon.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+            }
+        }
+
+        // Funções de Modal
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.remove('show');
+        }
+
+        // Funções de seleção
+        function toggleSelection(screenEl, computerName) {
+            if (selectedComputers.has(computerName)) {
+                selectedComputers.delete(computerName);
+                screenEl.classList.remove('selected');
+            } else {
+                selectedComputers.add(computerName);
+                screenEl.classList.add('selected');
+            }
+            updateSelectedCount();
+        }
+
+        function clearSelection() {
+            selectedComputers.clear();
+            computerMap.forEach(el => el.classList.remove('selected'));
+            updateSelectedCount();
+        }
+
+        function updateSelectedCount() {
+            // Null check before accessing textContent
+            if (selectedCount) selectedCount.textContent = selectedComputers.size;
+            if (topSelectedCount) topSelectedCount.textContent = selectedComputers.size;
+        }
+
+        function getSelectedOrAll() {
+            return selectedComputers.size > 0 ? 
+                Array.from(selectedComputers) : 
+                computers.filter(c => c.nome).map(c => c.nome);
+        }
+
+        // Funções de comando
+        async function sendCommand(clients, action, parameters = {}) {
+            try {
+                const isBroadcast = clients.length > 1;
+                const url = isBroadcast ? '/api/broadcast' : '/api/comando';
+                
+                const payload = isBroadcast ? 
+                    { acao: action, parametros: parameters } :
+                    { cliente: clients[0], acao: action, parametros: parameters };
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                const data = await response.json();
+                
+                if (data.sucesso) {
+                    showToast(`✅ ${data.mensagem}`, 'success');
+                    updateStats();
+                } else {
+                    showToast(`❌ ${data.erro || 'Erro ao enviar comando'}`, 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao enviar comando:', error);
+                showToast('❌ Erro ao enviar comando', 'error');
+            }
+        }
+
+        // Handlers dos botões
+        function setupButtonHandlers() {
+            if (btnMessage) {
+                btnMessage.addEventListener('click', () => {
+                    const clients = getSelectedOrAll();
+                    if (clients.length === 0) {
+                        showToast('⚠️ Nenhum computador selecionado ou ativo', 'error');
+                        return;
+                    }
+                    document.getElementById('messageTarget').value = 
+                        clients.length === 1 ? clients[0] : `${clients.length} computadores`;
+                    openModal('messageModal');
+                });
+            }
+
+            if (btnPause) {
+                btnPause.addEventListener('click', async () => {
+                    const clients = getSelectedOrAll();
+                    if (clients.length === 0) {
+                        showToast('⚠️ Nenhum computador selecionado ou ativo', 'error');
+                        return;
+                    }
+                    if (confirm(`Pausar capturas em ${clients.length} computador(es)?`)) {
+                        await sendCommand(clients, 'pausar');
+                    }
+                });
+            }
+
+            if (btnResume) {
+                btnResume.addEventListener('click', async () => {
+                    const clients = getSelectedOrAll();
+                    if (clients.length === 0) {
+                        showToast('⚠️ Nenhum computador selecionado ou ativo', 'error');
+                        return;
+                    }
+                    await sendCommand(clients, 'retomar');
+                });
+            }
+
+            if (btnQuality) {
+                btnQuality.addEventListener('click', () => {
+                    const clients = getSelectedOrAll();
+                    if (clients.length === 0) {
+                        showToast('⚠️ Nenhum computador selecionado ou ativo', 'error');
+                        return;
+                    }
+                    document.getElementById('qualityTarget').value = 
+                        clients.length === 1 ? clients[0] : `${clients.length} computadores`;
+                    openModal('qualityModal');
+                });
+            }
+
+            if (btnInterval) {
+                btnInterval.addEventListener('click', () => {
+                    const clients = getSelectedOrAll();
+                    if (clients.length === 0) {
+                        showToast('⚠️ Nenhum computador selecionado ou ativo', 'error');
+                        return;
+                    }
+                    document.getElementById('intervalTarget').value = 
+                        clients.length === 1 ? clients[0] : `${clients.length} computadores`;
+                    openModal('intervalModal');
+                });
+            }
+
+            if (btnShutdown) {
+                btnShutdown.addEventListener('click', async () => {
+                    const clients = getSelectedOrAll();
+                    if (clients.length === 0) {
+                        showToast('⚠️ Nenhum computador selecionado ou ativo', 'error');
+                        return;
+                    }
+                    if (confirm(`⚠️ ATENÇÃO! Desligar ${clients.length} computador(es)?\n\nEsta ação não pode ser desfeita!`)) {
+                        await sendCommand(clients, 'desligar');
+                    }
+                });
+            }
+        }
+
+        // Funções de envio de comandos específicos
+        async function sendMessage() {
+            const texto = document.getElementById('messageText').value.trim();
+            if (!texto) {
+                showToast('⚠️ Digite uma mensagem', 'error');
+                return;
+            }
+            
+            const clients = getSelectedOrAll();
+            await sendCommand(clients, 'mensagem', { texto });
+            closeModal('messageModal');
+            document.getElementById('messageText').value = '';
+            clearSelection();
+        }
+
+        async function sendQuality() {
+            const qualidade = parseInt(document.getElementById('qualityValue').value);
+            if (qualidade < 10 || qualidade > 100) {
+                showToast('⚠️ Qualidade deve estar entre 10 e 100', 'error');
+                return;
+            }
+            
+            const clients = getSelectedOrAll();
+            await sendCommand(clients, 'alterar_qualidade', { qualidade });
+            closeModal('qualityModal');
+            clearSelection();
+        }
+
+        async function sendInterval() {
+            const intervalo = parseInt(document.getElementById('intervalValue').value);
+            if (intervalo < 1 || intervalo > 60) {
+                showToast('⚠️ Intervalo deve estar entre 1 e 60 segundos', 'error');
+                return;
+            }
+            
+            const clients = getSelectedOrAll();
+            await sendCommand(clients, 'alterar_intervalo', { intervalo });
+            closeModal('intervalModal');
+            clearSelection();
+        }
+
+        // Funções principais
+        function initializeGrid() {
+            updateGridColumns();
+        }
+
+        function renderComputers() {
+            if (!Array.isArray(computers)) {
+                console.error('Computers não é um array válido');
+                return;
+            }
+
+            const activeComputers = computers.filter(comp => 
+                validateComputerData(comp) && comp.nome && comp.imagem
+            );
+
+            // Atualiza ou cria elementos
+            activeComputers.forEach((computer) => {
+                let screenEl = computerMap.get(computer.nome);
+                
+                if (!screenEl) {
+                    screenEl = document.createElement('div');
+                    screenEl.className = 'screen';
+                    screenEl.setAttribute('data-computer-name', sanitizeHTML(computer.nome));
+                    
+                    const safeImageSrc = validateImageSrc(computer.imagem) ? 
+                        `data:image/jpeg;base64,${computer.imagem}` : '';
+                    
+                    screenEl.innerHTML = `
+                        <div class="select-checkbox"></div>
+                        <img src="${safeImageSrc}" alt="${sanitizeHTML(computer.nome)}" 
+                             onerror="this.style.display='none'">
+                        <div class="screen-info"></div>
+                        <div class="label">${sanitizeHTML(computer.nome)}</div>
+                    `;
+                    
+                    screenEl.addEventListener('click', (e) => {
+                        if (e.shiftKey || e.target.classList.contains('select-checkbox')) {
+                            toggleSelection(screenEl, computer.nome);
+                        } else {
+                            toggleMaximize(screenEl);
+                        }
+                    });
+                    
+                    computerMap.set(computer.nome, screenEl);
+                    if (grid) grid.appendChild(screenEl);
+                } else {
+                    // Atualiza imagem
+                    const img = screenEl.querySelector('img');
+                    const safeImageSrc = validateImageSrc(computer.imagem) ? 
+                        `data:image/jpeg;base64,${computer.imagem}` : '';
+                    
+                    if (img.src !== safeImageSrc) {
+                        img.src = safeImageSrc;
+                        img.style.display = safeImageSrc ? 'block' : 'none';
+                    }
+                }
+
+                // Atualiza se está selecionado
+                if (selectedComputers.has(computer.nome)) {
+                    screenEl.classList.add('selected');
+                } else {
+                    screenEl.classList.remove('selected');
+                }
+
+                // Atualiza informações do sistema
+                const infoDiv = screenEl.querySelector('.screen-info');
+                const sistema = computer.sistema || {};
+                const alertas = computer.alertas || [];
+
+                let infoHTML = '';
+                if (sistema.ram_percent) {
+                    infoHTML += `
+                        <div class="info-row">
+                            <span class="info-icon">🧠</span>
+                            <span class="info-text">RAM: ${formatPercent(sistema.ram_percent)}</span>
+                        </div>
+                    `;
+                }
+                if (sistema.disco_percent) {
+                    infoHTML += `
+                        <div class="info-row">
+                            <span class="info-icon">💾</span>
+                            <span class="info-text">Disco: ${formatPercent(sistema.disco_percent)}</span>
+                        </div>
+                    `;
+                }
+                if (sistema.placa_mae && sistema.placa_mae !== 'N/A') {
+                    infoHTML += `
+                        <div class="info-row">
+                            <span class="info-icon">🖥️</span>
+                            <span class="info-text" title="${sanitizeHTML(sistema.placa_mae)}">${sanitizeHTML(sistema.placa_mae.substring(0, 15))}</span>
+                        </div>
+                    `;
+                }
+
+                if (infoDiv) infoDiv.innerHTML = infoHTML;
+
+                // Atualiza alertas
+                let existingBadge = screenEl.querySelector('.alert-badge');
+                if (alertas.length > 0) {
+                    const criticos = alertas.filter(a => a.nivel === 'danger').length;
+                    const avisos = alertas.filter(a => a.nivel === 'warning').length;
+                    
+                    if (!existingBadge) {
+                        existingBadge = document.createElement('div');
+                        existingBadge.className = 'alert-badge';
+                        screenEl.appendChild(existingBadge);
+                    }
+                    
+                    if (criticos > 0) {
+                        existingBadge.className = 'alert-badge';
+                        existingBadge.textContent = `⚠️ ${criticos} Crítico(s)`;
+                    } else if (avisos > 0) {
+                        existingBadge.className = 'alert-badge warning';
+                        existingBadge.textContent = `⚠️ ${avisos} Aviso(s)`;
+                    }
+                } else if (existingBadge) {
+                    existingBadge.remove();
+                }
+            });
+
+            // Remove computadores inativos
+            for (const [name, el] of computerMap.entries()) {
+                if (!activeComputers.some(comp => comp.nome === name)) {
+                    el.remove();
+                    computerMap.delete(name);
+                    selectedComputers.delete(name);
+                }
+            }
+
+            updateSelectedCount();
+            updateStats();
+            
+            // Update top bar online count
+            if (topOnlineCount) topOnlineCount.textContent = activeComputers.length;
+        }
+
+        function toggleMaximize(screen) {
+            if (!screen || !(screen instanceof Element)) return;
+            
+            if (screen === maximizedScreen) {
+                screen.classList.remove('maximized');
+                maximizedScreen = null;
+            } else {
+                if (maximizedScreen) {
+                    maximizedScreen.classList.remove('maximized');
+                }
+                screen.classList.add('maximized');
+                maximizedScreen = screen;
+            }
+        }
+
+        function updateGridColumns() {
+            if (typeof currentColumns !== 'number' || currentColumns < 1 || currentColumns > 10) {
+                currentColumns = 5;
+            }
+            
+            document.documentElement.style.setProperty('--columns', currentColumns);
+            if (columnIndicator) columnIndicator.textContent = `Colunas: ${currentColumns}`;
+        }
+
+        function updateStats() {
+            // Atualiza estatísticas periodicamente
+            fetch('/api/stats')
+                .then(res => res.json())
+                .then(data => {
+                    stats = data;
+                    // Null checks before updating textContent
+                    if (messageCount) messageCount.textContent = data.mensagens_recebidas || 0;
+                    if (commandCount) commandCount.textContent = data.comandos_enviados || 0;
+                    if (uptime) uptime.textContent = data.uptime_formatado || '--:--:--';
+                    
+                    // Update top bar with null checks
+                    if (topMessageCount) topMessageCount.textContent = data.mensagens_recebidas || 0;
+                    if (topCommandCount) topCommandCount.textContent = data.comandos_enviados || 0;
+                    if (topUptime) topUptime.textContent = data.uptime_formatado || '--:--:--';
+                })
+                .catch(err => console.error('Erro ao buscar estatísticas:', err));
+
+            // Atualiza alertas
+            fetch('/api/alerts')
+                .then(res => res.json())
+                .then(data => {
+                    // Null checks before updating textContent
+                    if (criticalAlerts) criticalAlerts.textContent = data.criticos || 0;
+                    if (warningAlerts) warningAlerts.textContent = data.avisos || 0;
+                    
+                    // Update top bar with null checks
+                    if (topCriticalAlerts) topCriticalAlerts.textContent = data.criticos || 0;
+                    if (topWarningAlerts) topWarningAlerts.textContent = data.avisos || 0;
+                })
+                .catch(err => console.error('Erro ao buscar alertas:', err));
+        }
+
+        function showToast(message, type = '', duration = 3000) {
+            if (typeof message !== 'string' || !toast) return;
+            
+            toast.textContent = sanitizeHTML(message);
+            toast.className = 'toast show';
+            if (type) toast.classList.add(type);
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.className = 'toast';
+                }, 300);
+            }, duration);
+        }
+
+        function updateConnectionStatus(connected) {
+            if (statusDot) {
+                if (connected) {
+                    statusDot.classList.remove('disconnected');
+                } else {
+                    statusDot.classList.add('disconnected');
+                }
+            }
+            
+            if (connectionText) {
+                connectionText.textContent = connected ? 'Conectado' : 'Desconectado';
+            }
+        }
+
+        function connectSSE() {
+            if (eventSource) {
+                eventSource.close();
+            }
+
+            eventSource = new EventSource('/stream');
+            
+            eventSource.onopen = function() {
+                console.log('Conexão SSE estabelecida');
+                updateConnectionStatus(true);
+                reconnectAttempts = 0;
+                if (loading) loading.style.display = 'none';
+                showToast('✅ Conectado ao servidor', 'success');
+            };
+
+            eventSource.onmessage = function(event) {
+                try {
+                    const data = JSON.parse(event.data);
+                    
+                    if (!Array.isArray(data)) {
+                        throw new Error('Dados recebidos não são um array');
+                    }
+                    
+                    computers = [];
+                    for (let i = 0; i < MAX; i++) {
+                        if (data[i] && validateComputerData(data[i])) {
+                            computers.push(data[i]);
+                        }
+                    }
+                    
+                    renderComputers();
+                } catch (error) {
+                    console.error('Erro ao processar dados SSE:', error);
+                    showToast('⚠️ Erro ao processar dados', 'error', 3000);
+                }
+            };
+
+            eventSource.onerror = function(error) {
+                console.error('Erro na conexão SSE:', error);
+                updateConnectionStatus(false);
+                if (eventSource) eventSource.close();
+                
+                reconnectAttempts++;
+                
+                if (reconnectAttempts <= maxReconnectAttempts) {
+                    const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000);
+                    showToast(`⚠️ Reconectando em ${delay/1000}s... (Tentativa ${reconnectAttempts}/${maxReconnectAttempts})`, 'error', delay);
+                    
+                    setTimeout(() => {
+                        console.log('Tentando reconectar...');
+                        connectSSE();
+                    }, delay);
+                } else {
+                    showToast('❌ Falha na conexão. Recarregue a página.', 'error', 5000);
+                }
+            };
+        }
+
+        // Event Listeners
+        function setupEventListeners() {
+            // Sidebar toggle
+            if (sidebarToggle) {
+                sidebarToggle.addEventListener('click', toggleSidebar);
+            }
+            
+            // Theme toggle
+            if (themeToggle) {
+                themeToggle.addEventListener('click', toggleTheme);
+            }
+
+            // Wheel event para mudar colunas
+            if (grid) {
+                grid.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    
+                    clearTimeout(scrollTimeout);
+                    
+                    if (e.deltaY < 0 && currentColumns < 10) {
+                        currentColumns++;
+                    } else if (e.deltaY > 0 && currentColumns > 1) {
+                        currentColumns--;
+                    } else {
+                        return;
+                    }
+                    
+                    updateGridColumns();
+                    showToast(`📊 Colunas: ${currentColumns}`);
+                    
+                    scrollTimeout = setTimeout(() => {}, 100);
+                });
+            }
+
+            // Botão de reset
+            if (resetBtn) {
+                resetBtn.addEventListener('click', function() {
+                    computerMap.forEach(el => {
+                        if (el.classList.contains('maximized')) {
+                            el.classList.remove('maximized');
+                        }
+                    });
+                    maximizedScreen = null;
+                    clearSelection();
+                    showToast('🔄 Visualização restaurada', 'success');
+                });
+            }
+
+            // Botão de refresh
+            if (refreshBtn) {
+                refreshBtn.addEventListener('click', function() {
+                    updateStats();
+                    showToast('⚡ Estatísticas atualizadas', 'success');
+                });
+            }
+
+            // Prevenir ações de contexto em imagens maximizadas
+            document.addEventListener('contextmenu', function(e) {
+                if (e.target.closest('.screen.maximized')) {
+                    e.preventDefault();
+                }
+            });
+
+            // Fechar maximizado com ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    if (maximizedScreen) {
+                        maximizedScreen.classList.remove('maximized');
+                        maximizedScreen = null;
+                    }
+                    // Fechar modais
+                    document.querySelectorAll('.modal.show').forEach(modal => {
+                        modal.classList.remove('show');
+                    });
+                }
+                
+                // Ctrl+A para selecionar todos
+                if (e.ctrlKey && e.key === 'a') {
+                    e.preventDefault();
+                    computers.filter(c => c.nome).forEach(comp => {
+                        selectedComputers.add(comp.nome);
+                        const el = computerMap.get(comp.nome);
+                        if (el) el.classList.add('selected');
+                    });
+                    updateSelectedCount();
+                    showToast(`✅ ${selectedComputers.size} computador(es) selecionado(s)`, 'success');
+                }
+                
+                // Ctrl+D para desselecionar todos
+                if (e.ctrlKey && e.key === 'd') {
+                    e.preventDefault();
+                    clearSelection();
+                    showToast('✅ Seleção limpa', 'success');
+                }
+            });
+
+            // Enter nos modais
+            const messageTextEl = document.getElementById('messageText');
+            if (messageTextEl) {
+                messageTextEl.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && e.ctrlKey) {
+                        sendMessage();
+                    }
+                });
+            }
+
+            // Fechar modais ao clicar fora
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        modal.classList.remove('show');
+                    }
+                });
+            });
+
+            // Fechar conexão quando a página for fechada
+            window.addEventListener('beforeunload', function() {
+                if (eventSource) {
+                    eventSource.close();
+                }
+            });
+        }
+
+        // Inicialização
+        function init() {
+            try {
+                // Initialize DOM elements first
+                initializeDOMElements();
+                
+                // Then load theme and setup the rest
+                loadTheme();
+                initializeGrid();
+                setupEventListeners();
+                setupButtonHandlers();
+                
+                // Conecta ao servidor
+                if (typeof EventSource !== 'undefined') {
+                    connectSSE();
+                    
+                    // Atualiza estatísticas a cada 10 segundos
+                    setInterval(updateStats, 10000);
+                } else {
+                    console.error('EventSource não suportado');
+                    showToast('❌ Seu navegador não suporta atualizações em tempo real', 'error', 5000);
+                    if (loading) loading.style.display = 'none';
+                }
+            } catch (error) {
+                console.error('Erro na inicialização:', error);
+                showToast('❌ Erro ao inicializar o monitor', 'error', 5000);
+                if (loading) loading.style.display = 'none';
+            }
+        }
+
+        // Inicializar quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>

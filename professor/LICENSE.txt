@@ -1,0 +1,59 @@
+LICENÇA DE SOFTWARE
+===================
+
+Copyright (c) 2025 DoNot Soluções em Informática
+
+**Licença de Uso Não Exclusiva e Limitada para o Software Professor.exe**
+
+Este Acordo de Licença de Software ("Licença") é um contrato legal entre você ("Licenciado"), seja uma pessoa física ou entidade, e DoNot ("Licenciante"), detentor dos direitos autorais sobre o software Professor.exe (o "Software"). Ao instalar, copiar, executar ou de qualquer forma utilizar o Software, você concorda em estar vinculado aos termos e condições desta Licença. Caso não concorde com estes termos, não utilize o Software e remova-o imediatamente de todos os seus sistemas.
+
+**1. Concessão de Licença**
+
+Sujeito ao cumprimento integral dos termos desta Licença, o Licenciante concede ao Licenciado uma licença não exclusiva, intransferível, revogável e limitada para usar o Software, exclusivamente para fins internos e educacionais não comerciais, nas seguintes condições:
+
+- O Software pode ser utilizado gratuitamente em até três (3) laboratórios por instituição educacional ou entidade similar, sem qualquer cobrança ou pagamento adicional.
+- Para uso em mais de três (3) laboratórios por instituição, o Licenciado deve adquirir uma licença comercial adicional através do site https://do.not.br, conforme os termos e preços vigentes nesse momento.
+
+Esta licença não autoriza a distribuição, sublicenciamento, aluguel, locação, venda, exportação ou qualquer outra forma de comercialização do Software. O Software é fornecido "como está" (AS IS), e o Licenciado assume todos os riscos associados ao seu uso.
+
+**2. Restrições**
+
+- Você não pode modificar, descompilar, desmontar, engenhar reverso, decodificar ou de qualquer forma tentar derivar o código-fonte do Software, exceto na medida explicitamente permitida por lei aplicável.
+- Você não pode remover, ocultar ou alterar quaisquer avisos de copyright, marcas registradas ou outros avisos de propriedade intelectual presentes no Software.
+- Você não pode usar o Software em conjunto com qualquer hardware ou software que viole leis aplicáveis, ou de forma que infrinja direitos de terceiros.
+- Qualquer violação destas restrições resultará na revogação imediata desta Licença, sem prejuízo de outras ações legais ou indenizações cabíveis.
+
+**3. Suporte e Manutenção**
+
+O uso do Software é fornecido sem garantia de suporte ou manutenção. O Licenciado utiliza o Software por sua própria conta e risco, assumindo integral responsabilidade por qualquer dano, perda de dados ou consequência decorrente de seu uso, incluindo, mas não se limitando a, falhas técnicas, incompatibilidades ou interrupções.
+
+Caso deseje suporte especializado, atualizações ou assistência técnica, o Licenciado pode adquirir esses serviços opcionalmente através do site https://do.not.br, sujeito aos termos e condições específicos desses serviços.
+
+**4. Propriedade Intelectual**
+
+Todo o Software, incluindo seu código-fonte, documentação, design e materiais associados, permanece propriedade exclusiva do Licenciante. Esta Licença não transfere qualquer direito de propriedade ou título sobre o Software. O Licenciado reconhece que o Software pode conter material protegido por direitos autorais, segredos comerciais e outros direitos de propriedade intelectual, e concorda em respeitá-los.
+
+**5. Garantias e Responsabilidade**
+
+O SOFTWARE É FORNECIDO "COMO ESTÁ", SEM QUALQUER GARANTIA, EXPRESSA OU IMPLÍCITA, INCLUINDO, MAS NÃO SE LIMITANDO A, GARANTIAS DE QUALIDADE, DESEMPENHO, COMERCIALIZAÇÃO OU ADEQUAÇÃO A UM FIM ESPECÍFICO. O LICENCIANTE NÃO GARANTE QUE O SOFTWARE ATENDERÁ AOS SEUS REQUISITOS, OPERARÁ SEM INTERRUPCOES OU ERROS, OU SERÁ COMPATÍVEL COM QUALQUER SISTEMA OU HARDWARE.
+
+EM NENHUMA CIRCUNSTÂNCIA O LICENCIANTE SERÁ RESPONSÁVEL POR QUAISQUER DANOS DIRETOS, INDIRETOS, INCIDENTAIS, ESPECIAIS, CONSEQUENTES OU PUNITIVOS, INCLUINDO PERDA DE LUCROS, DADOS OU USO, DECORRENTES DO USO OU INCAPACIDADE DE USAR O SOFTWARE, MESMO SE INFORMADO DA POSSIBILIDADE DE TAIS DANOS. A RESPONSABILIDADE TOTAL DO LICENCIANTE NÃO EXCEDERÁ O VALOR PAGO PELO LICENCIADO PELA LICENÇA (QUE PODE SER ZERO).
+
+**6. Término**
+
+Esta Licença entra em vigor na data de aceitação e permanece válida enquanto você cumprir seus termos. O Licenciante pode rescindir esta Licença imediatamente se você violar qualquer disposição. No término, você deve cessar todo uso do Software, destruir todas as cópias em sua posse e, se solicitado, certificar por escrito tal destruição.
+
+**7. Lei Aplicável e Resolução de Disputas**
+
+Esta Licença será regida pelas leis da República Federativa do Brasil, sem consideração a princípios de conflito de leis. Qualquer disputa decorrente desta Licença será submetida à jurisdição exclusiva dos tribunais da comarca de Brasília, DF, Brasil, renunciando as partes a qualquer outro foro.
+
+**8. Disposições Gerais**
+
+- Esta Licença constitui o acordo integral entre as partes e substitui todos os entendimentos anteriores.
+- Nenhuma renúncia a qualquer disposição será considerada válida, a menos que por escrito.
+- Se qualquer disposição desta Licença for considerada inválida, as demais permanecerão em pleno vigor.
+- O Licenciante reserva o direito de atualizar esta Licença a qualquer momento, com notificação prévia através do site https://do.not.br. O uso continuado do Software após tais atualizações implica aceitação dos novos termos.
+
+Para dúvidas ou esclarecimentos, contate o Licenciante através de contato@do.not.br.
+
+[Aceitando esta Licença, você confirma ter lido, compreendido e concordado com todos os termos acima.]
